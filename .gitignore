@@ -1,0 +1,9 @@
+node_modules
+dist
+test-results
+playwright-report
+.screenshots
+.DS_Store
+.vercel
+.plan-timer.json
+.claude/settings.local.json

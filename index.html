@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Мельник — пиксельная головоломка в браузере</title>
+    <meta
+      name="description"
+      content="Пиксельная головоломка: поворачивайте деревянные жёлоба и проведите воду от родника к мельничному колесу. Уровень дня — один на всех, бесконечный режим, ачивки. Играется в браузере, с телефона и с диска."
+    />
+    <link rel="canonical" href="https://mirudistok32.github.io/miller/" />
+    <meta name="theme-color" content="#12151f" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:title" content="Мельник — пиксельная головоломка" />
+    <meta
+      property="og:description"
+      content="Проведите воду от родника к мельничному колесу: поворачивайте жёлоба, решайте уровень дня и соревнуйтесь с друзьями."
+    />
+    <meta property="og:url" content="https://mirudistok32.github.io/miller/" />
+    <meta property="og:image" content="https://mirudistok32.github.io/miller/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath d='M5 1h6v2h2v2h2v6h-2v2h-2v2H5v-2H3v-2H1V5h2V3h2z' fill='%233E271B'/%3E%3Cpath d='M5 2h6v2h2v2h1v4h-1v2h-2v2H5v-2H3v-2H2V6h1V4h2z' fill='%238A5A3C'/%3E%3Cpath d='M7 3h2v10H7zM3 7h10v2H3z' fill='%23B07C50'/%3E%3Crect x='6' y='6' width='4' height='4' fill='%233E271B'/%3E%3Crect x='12' y='0' width='3' height='3' fill='%234A90C8'/%3E%3C/svg%3E"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "Мельник",
+        "description": "Пиксельная головоломка на canvas: провести воду по деревянным жёлобам от родника к мельничному колесу.",
+        "url": "https://mirudistok32.github.io/miller/",
+        "inLanguage": "ru",
+        "genre": "Puzzle",
+        "gamePlatform": "Web browser",
+        "playMode": "SinglePlayer",
+        "applicationCategory": "Game",
+        "author": {
+          "@type": "Person",
+          "name": "Станислав Постников",
+          "url": "https://mirudistok32.github.io/portfolio/"
+        }
+      }
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <div class="app" id="app">
+      <div class="stage" id="stage" tabindex="-1">
+        <canvas
+          id="scene"
+          width="320"
+          height="180"
+          role="img"
+          aria-label="Пиксельная деревня: ручей, деревянные жёлоба и мельница с колесом"
+        ></canvas>
+      </div>
+
+      <div class="hud" id="hud" hidden>
+        <button class="icon-btn" type="button" data-action="pause" aria-label="Пауза (Esc)">
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <rect x="4" y="3" width="3" height="10" />
+            <rect x="9" y="3" width="3" height="10" />
+          </svg>
+        </button>
+        <div class="hud-info">
+          <p class="hud-title" id="hud-title">Уровень дня</p>
+          <p class="hud-stats">
+            <span>Ходы <b id="hud-moves">0</b></span>
+            <span>Время <b id="hud-time">0:00</b></span>
+          </p>
+        </div>
+        <button
+          class="icon-btn"
+          type="button"
+          data-action="sound"
+          id="hud-sound"
+          aria-label="Звук (M)"
+          aria-pressed="true"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M2 6h3l4-3v10l-4-3H2z" />
+            <path class="sound-on stroke" d="M11 5.5a3.5 3.5 0 0 1 0 5" />
+            <path class="sound-on stroke" d="M12.6 3.4a6.2 6.2 0 0 1 0 9.2" />
+            <path class="sound-off stroke" d="M11 6l4 4M15 6l-4 4" />
+          </svg>
+        </button>
+        <button
+          class="icon-btn"
+          type="button"
+          data-action="hint"
+          id="hud-hint"
+          aria-label="Подсказка (H): не больше двух капель и без рекорда по ходам"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path
+              d="M8 1.5a4.6 4.6 0 0 0-2.7 8.3c.5.4.7.9.7 1.4h4c0-.5.2-1 .7-1.4A4.6 4.6 0 0 0 8 1.5z"
+            />
+            <rect x="6" y="12" width="4" height="1.4" />
+            <rect x="6.8" y="14" width="2.4" height="1.2" />
+          </svg>
+        </button>
+        <button
+          class="icon-btn"
+          type="button"
+          data-action="undo"
+          id="hud-undo"
+          aria-label="Отменить ход (Z): поле вернётся, ход останется"
+          disabled
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path class="stroke" d="M6 5.5h4.5a3.5 3.5 0 0 1 0 7H5" />
+            <path d="M6.6 1.6v7.8L1.6 5.5z" />
+          </svg>
+        </button>
+        <button
+          class="icon-btn"
+          type="button"
+          data-action="restart"
+          aria-label="Начать уровень заново"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path class="stroke" d="M13 8.5a5 5 0 1 1-1.6-3.7" />
+            <path d="M9.4 1.6h5v5z" />
+          </svg>
+        </button>
+      </div>
+      <p class="hint" id="hint" hidden>
+        Нажмите на жёлоб — он повернётся на четверть оборота,
+        <span class="hint-mouse">правая кнопка — обратно</span
+        ><span class="hint-touch">долгое нажатие — обратно</span>. Проведите воду от родника к
+        мельничному колесу.
+        <span class="hint-keys"
+          >С клавиатуры: стрелки — выбрать клетку, Enter — повернуть, Shift+Enter — обратно.</span
+        >
+      </p>
+    </div>
+
+    <section class="screen screen-menu" id="screen-menu" aria-labelledby="menu-title">
+      <div class="card">
+        <p class="eyebrow">Пиксельная головоломка</p>
+        <h1 id="menu-title" tabindex="-1">Мельник</h1>
+        <p class="lead">
+          Поворачивайте деревянные жёлоба и проведите воду от родника к мельничному колесу.
+        </p>
+        <div class="modes">
+          <button class="mode primary" type="button" data-action="daily">
+            <span class="mode-name">Уровень дня</span>
+            <span class="mode-note" id="daily-note">Один на всех, новый каждый день</span>
+          </button>
+          <button class="mode" type="button" data-action="endless">
+            <span class="mode-name">Бесконечный</span>
+            <span class="mode-note" id="endless-note">Поле растёт, жёлобов больше</span>
+          </button>
+        </div>
+        <div class="actions">
+          <button class="btn" type="button" data-action="help">Как играть</button>
+          <button class="btn" type="button" data-action="achievements">
+            Ачивки и рекорды <span class="badge" id="ach-count">0 из 11</span>
+          </button>
+        </div>
+        <div class="settings">
+          <button
+            class="btn small"
+            type="button"
+            data-action="sound"
+            id="btn-sound"
+            aria-pressed="true"
+          >
+            Звук: включён
+          </button>
+          <button class="btn small" type="button" data-action="theme" id="btn-theme">
+            Тема: как в системе
+          </button>
+        </div>
+        <p class="notice" id="save-notice" role="status" hidden></p>
+        <p class="credit">
+          Игра из портфолио
+          <a href="https://mirudistok32.github.io/portfolio/">Станислава Постникова</a> ·
+          <a href="https://t.me/postnikov_st">Telegram</a>
+        </p>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-help" aria-labelledby="help-title" hidden>
+      <div class="card">
+        <h2 id="help-title" tabindex="-1">Как играть</h2>
+        <p class="lead">
+          Вода бьёт из родника над полем. Внизу стоит мельница. Поверните жёлоба так, чтобы вода по
+          ним добежала до колеса, — и мельница заработает.
+        </p>
+
+        <h3>Управление</h3>
+        <dl class="controls">
+          <dt>Мышь или палец</dt>
+          <dd>
+            <b>Нажмите на жёлоб</b> — он повернётся на четверть оборота по часовой стрелке.
+            <b>Правая кнопка</b> или <b>долгое нажатие</b> — против часовой. Каждый поворот — один
+            ход.
+          </dd>
+          <dt>Клавиатура</dt>
+          <dd>
+            <b>Стрелки</b> — выбрать клетку, <b>Enter</b> или <b>пробел</b> — повернуть,
+            <b>Shift+Enter</b> — повернуть против часовой.
+          </dd>
+          <dt>Ещё</dt>
+          <dd>
+            <b>Z</b> или <b>Ctrl+Z</b> — отменить ход: поле вернётся, а ход останется потраченным.
+            <b>H</b> — подсказка: подсветит жёлоб, который стоит повернуть. Жёлоб она не крутит, но
+            после неё не больше двух капель, нет рекорда по лишним ходам, а в результате будет 💡.
+            Esc или P — пауза, M — звук, кнопка ↻ — начать уровень заново.
+          </dd>
+        </dl>
+
+        <h3>Жёлоба</h3>
+        <ul class="rules">
+          <li><b>Прямой</b> пропускает воду насквозь, <b>угол</b> поворачивает её.</li>
+          <li>
+            <b>Развилка</b> делит поток на три стороны. Лишний конец не страшен: вода прольётся
+            мимо, но до колеса дойдёт.
+          </li>
+          <li>
+            Вода сразу бежит по всем жёлобам, которые стыкуются с родником, — видно, куда она дошла.
+          </li>
+          <li>На клетку с камнем, кочкой или пнём жёлоб не поставить.</li>
+        </ul>
+
+        <h3>Режимы</h3>
+        <ul class="rules">
+          <li>
+            <b>Уровень дня</b> — один на всех и меняется в полночь. Результат можно скопировать и
+            отправить друзьям: в нём только ходы и время, решение не выдаётся.
+          </li>
+          <li>
+            <b>Бесконечный</b> — уровни один за другим: поле растёт, путь воды длиннее, развилок
+            больше. Каждые пять уровней меняется время года.
+          </li>
+        </ul>
+
+        <h3>Счёт</h3>
+        <p>
+          Каждый поворот — ход. После решения игра показывает минимум ходов для этого уровня. Время
+          идёт с первого поворота и стоит на паузе. Недоигранный уровень сохраняется — можно закрыть
+          вкладку и вернуться.
+        </p>
+
+        <div class="actions">
+          <button class="btn primary" type="button" data-action="daily">Уровень дня</button>
+          <button class="btn" type="button" data-action="menu">В меню</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-achievements" aria-labelledby="ach-title" hidden>
+      <div class="card">
+        <h2 id="ach-title" tabindex="-1">Ачивки и рекорды</h2>
+        <ul class="ach-list" id="ach-list"></ul>
+        <h3>Рекорды</h3>
+        <dl class="stats" id="records"></dl>
+        <div class="backup">
+          <h3>Резервная копия</h3>
+          <p class="muted">
+            Рекорды и ачивки хранятся только в этом браузере. Копию можно скачать и загрузить в
+            другом браузере: она объединится с тем, что уже есть.
+          </p>
+          <div class="actions">
+            <button class="btn small" type="button" data-action="export">Скачать копию</button>
+            <label class="btn small file-btn">
+              Загрузить копию
+              <input type="file" id="import-file" accept="application/json,.json" />
+            </label>
+          </div>
+          <p class="notice" id="backup-message" role="status" hidden></p>
+        </div>
+        <div class="actions">
+          <button class="btn" type="button" data-action="menu">В меню</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-paused" aria-labelledby="paused-title" hidden>
+      <div class="card card-narrow">
+        <h2 id="paused-title" tabindex="-1">Пауза</h2>
+        <p class="muted">Часы стоят. Недоигранный уровень сохранён.</p>
+        <div class="actions actions-column">
+          <button class="btn primary" type="button" data-action="resume">Продолжить</button>
+          <button class="btn" type="button" data-action="restart">Начать уровень заново</button>
+          <button class="btn" type="button" data-action="menu">В меню</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen screen-solved" id="screen-solved" aria-labelledby="solved-title" hidden>
+      <div class="card card-narrow">
+        <p class="eyebrow" id="solved-mode">Уровень дня</p>
+        <h2 id="solved-title" tabindex="-1">Колесо закрутилось!</h2>
+        <p class="record" id="solved-record" hidden>Новый рекорд</p>
+        <dl class="stats" id="solved-stats"></dl>
+        <div class="unlocked" id="solved-unlocked" hidden>
+          <h3>Новые ачивки</h3>
+          <ul class="ach-list" id="solved-unlocked-list"></ul>
+        </div>
+        <div class="actions">
+          <button class="btn primary" type="button" data-action="copy" id="btn-copy">
+            Скопировать результат
+          </button>
+          <button class="btn primary" type="button" data-action="next" id="btn-next">
+            Следующий уровень
+          </button>
+          <button class="btn" type="button" data-action="menu">В меню</button>
+        </div>
+        <textarea
+          class="share-text"
+          id="share-text"
+          rows="3"
+          readonly
+          hidden
+          aria-label="Результат для друзей"
+        ></textarea>
+        <p class="muted" id="solved-note" hidden></p>
+        <p class="credit">
+          Понравилось? Напишите автору в
+          <a href="https://t.me/postnikov_st">Telegram</a> или загляните в
+          <a href="https://mirudistok32.github.io/portfolio/">портфолио</a>.
+        </p>
+      </div>
+    </section>
+
+    <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+    <p class="sr-only" id="announcer" aria-live="polite"></p>
+    <noscript><p class="noscript">Для игры нужен JavaScript.</p></noscript>
+  </body>
+</html>

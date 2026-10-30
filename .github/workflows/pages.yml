@@ -1,0 +1,52 @@
+# Публикация на GitHub Pages при каждом пуше в master или main (и вручную из вкладки Actions).
+# Шаблон из agent-base (взят из film-course-kit). Один раз в репозитории:
+# Settings → Pages → Build and deployment → Source: GitHub Actions.
+# Сайт с относительными путями и hash-роутингом не требует ни base-пути, ни 404.html.
+# Папка сборки: dist (Vite) или out (Next, output: 'export') — поправьте path ниже.
+name: Pages
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Одна публикация за раз; идущую не прерываем, чтобы сайт не остался полувыложенным.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Сначала те же проверки, что локально: сломанный сайт не публикуется.
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -63,6 +63,7 @@
 | Почему сделано так | `docs/decisions.md` |
 | ТЗ | `docs/spec.md` |
 | Живая проверка | `docs/playtest.md` |
+| Обязательные рекомендации (OWASP, WCAG…) | `../agent-base/docs/principles.md` → «Стандарты» |
 
 ## Нельзя
 

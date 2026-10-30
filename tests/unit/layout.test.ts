@@ -32,6 +32,8 @@ const LARGE: Viewport[] = [
   { width: 768, height: 1024, dpr: 2 },
 ];
 const BOARDS = [
+  { cols: 3, rows: 3 },
+  { cols: 3, rows: 4 },
   { cols: 4, rows: 4 },
   { cols: 5, rows: 6 },
   { cols: 6, rows: 7 },

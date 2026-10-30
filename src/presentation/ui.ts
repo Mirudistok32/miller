@@ -22,7 +22,7 @@ import {
 } from '@/content/texts';
 import { ACHIEVEMENT_IDS, type AchievementId } from '@/domain/achievements';
 import { CCW, cellOf, colOf, CW, DIRS, E, maskOf, N, rotsOf, rowOf, S, W } from '@/domain/grid';
-import { DEMO_PARAMS, endlessParams } from '@/domain/levels';
+import { dailyKey, DEMO_PARAMS, endlessKey, endlessParams } from '@/domain/levels';
 import type { Theme } from '@/domain/save';
 
 import { copyText, downloadText } from './files';
@@ -234,7 +234,7 @@ export function createView(deps: { renderer: Renderer; store: SaveStore; clock: 
     const save = store.get();
     const today = clock.today();
     const done = save.daily[today];
-    const started = save.progress.daily?.key.endsWith(today);
+    const started = save.progress.daily?.key === dailyKey(today);
     $('daily-note').textContent = done
       ? `${dayMonth(today)} · решён: ${movesText(done.moves)}, ${clockText(done.time)}`
       : started
@@ -243,7 +243,8 @@ export function createView(deps: { renderer: Renderer; store: SaveStore; clock: 
     const level = save.endless.level;
     const p = endlessParams(level);
     $('endless-note').textContent =
-      `Уровень ${level} · поле ${p.cols}×${p.rows}` + (save.progress.endless ? ' · начат' : '');
+      `Уровень ${level} · поле ${p.cols}×${p.rows}` +
+      (save.progress.endless?.key === endlessKey(level) ? ' · начат' : '');
     const open = ACHIEVEMENT_IDS.filter((id) => save.achievements[id]).length;
     $('ach-count').textContent = `${open} из ${ACHIEVEMENT_IDS.length}`;
     syncSound(save.sound);

@@ -146,7 +146,7 @@ for (const viewport of VIEWPORTS) {
       viewport,
       scheme: 'dark',
       state: 'menu',
-      query: `?seed=2026&level=13&season=${season}`,
+      query: `?seed=2026&level=48&season=${season}`,
       name: `season-${season}-${viewport.name}`,
     });
   }

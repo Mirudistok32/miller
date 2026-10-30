@@ -40,7 +40,7 @@ export interface Best {
 }
 
 export interface Progress {
-  /** Чей это уровень: `daily:v2:2026-10-30`, `endless:v2:7`. Не совпал — прогресс не нужен. */
+  /** Чей это уровень: `daily:v3:2026-10-30`, `endless:v3:7`. Не совпал — прогресс не нужен. */
   key: string;
   rots: string;
   moves: number;

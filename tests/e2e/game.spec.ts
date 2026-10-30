@@ -382,7 +382,9 @@ test('клавиатура: стрелки ведут курсор, Enter пов
   expect(start.cursor).toBe(-1);
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('ArrowLeft');
-  const at = level.board.source + level.board.cols - 1;
+  // родник может стоять в левом столбце: тогда курсор упирается в край
+  const col = Math.max(0, level.board.source - 1);
+  const at = level.board.cols + col;
   expect((await board(page)).cursor).toBe(at);
   await expect(page.locator('#announcer')).toContainText('Ряд 2');
   await page.keyboard.press('Enter');
@@ -400,7 +402,7 @@ test('клавиатура: стрелки ведут курсор, Enter пов
   expect(reverted.moves).toBe(level.board.cells[at]?.kind === 'empty' ? 0 : 2);
   // упираемся в край — курсор остаётся на поле
   for (let i = 0; i < 12; i++) await page.keyboard.press('ArrowUp');
-  expect((await board(page)).cursor).toBe(level.board.source - 1);
+  expect((await board(page)).cursor).toBe(col);
   await page.keyboard.press('Escape');
   await expect(page.getByRole('heading', { name: 'Пауза' })).toBeVisible();
   await page.keyboard.press('Escape');
@@ -518,16 +520,75 @@ test('уровень дня: решить, скопировать результ
 test('бесконечный режим: решил уровень — следующий, рекорд поля записан', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: /Бесконечный/ }).click();
-  await expect(page.locator('#hud-title')).toHaveText('Уровень 1 · поле 4×4');
+  await expect(page.locator('#hud-title')).toHaveText('Уровень 1 · поле 3×3');
   await playTurns(page, endlessLevel(1).solution.turns);
   await page.clock.runFor(4_000);
   await expect(page.getByRole('heading', { name: 'Колесо закрутилось!' })).toBeVisible();
   await expect(page.locator('#solved-record')).toBeVisible();
   await page.getByRole('button', { name: 'Следующий уровень' }).click();
-  await expect(page.locator('#hud-title')).toHaveText('Уровень 2 · поле 4×5');
+  await expect(page.locator('#hud-title')).toHaveText('Уровень 2 · поле 3×3');
   const saved = await stored(page);
   expect(saved.endless.level).toBe(2);
-  expect(saved.best['4x4'].extra).toBe(0);
+  expect(saved.best['3x3'].extra).toBe(0);
+});
+
+test('сохранение с прошлой версии сида: итог дня и номер уровня на месте, недоигранное забыто', async ({
+  page,
+}) => {
+  const errors = trackErrors(page);
+  await seed(
+    page,
+    JSON.stringify({
+      schemaVersion: 1,
+      daily: { [TODAY]: { moves: 21, min: 17, time: 83.6, attempts: 1, rots: '0'.repeat(42) } },
+      endless: { level: 12 },
+      progress: {
+        endless: {
+          key: 'endless:v2:12',
+          rots: '0'.repeat(42),
+          moves: 5,
+          time: 12.4,
+          started: true,
+          attempts: 1,
+        },
+      },
+    }),
+  );
+  await open(page);
+  await expect(page.locator('#daily-note')).toContainText('решён: 21');
+  await expect(page.locator('#endless-note')).toHaveText('Уровень 12 · поле 4×5');
+  await page.getByRole('button', { name: /Уровень дня/ }).click();
+  await expect(page.getByRole('heading', { name: 'Колесо закрутилось!' })).toBeVisible();
+  await page.getByRole('button', { name: 'В меню' }).last().click();
+  await page.getByRole('button', { name: /Бесконечный/ }).click();
+  await expect(page.locator('#hud-title')).toHaveText('Уровень 12 · поле 4×5');
+  await expect(page.locator('#hud-moves')).toHaveText('0');
+  expect(errors).toEqual([]);
+});
+
+test('недоигранный уровень дня с прошлой версии сида: меню не обещает продолжение', async ({
+  page,
+}) => {
+  await seed(
+    page,
+    JSON.stringify({
+      schemaVersion: 1,
+      progress: {
+        daily: {
+          key: `daily:v2:${TODAY}`,
+          rots: '0'.repeat(42),
+          moves: 5,
+          time: 12.4,
+          started: true,
+          attempts: 1,
+        },
+      },
+    }),
+  );
+  await open(page);
+  await expect(page.locator('#daily-note')).not.toContainText('начат');
+  await page.getByRole('button', { name: /Уровень дня/ }).click();
+  await expect(page.locator('#hud-moves')).toHaveText('0');
 });
 
 test('повреждённое сохранение: игра начинается заново, старые данные отложены', async ({

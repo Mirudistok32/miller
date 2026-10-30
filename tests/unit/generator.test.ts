@@ -170,13 +170,40 @@ describe('генератор', () => {
     expect(mills.size).toBe(DAILY_PARAMS.cols);
   });
 
-  it('в уровнях есть все три формы жёлобов, развилки — со второй ступени', () => {
+  it('в уровнях есть все три формы жёлобов, развилки — с поля 4×5', () => {
     const kinds = new Set<string>();
-    for (let level = 2; level <= 40; level++) {
+    for (let level = 11; level <= 40; level++) {
       for (const c of endlessLevel(level).board.cells) kinds.add(c.kind);
     }
     expect([...kinds].sort()).toEqual(['corner', 'empty', 'straight', 'tee']);
-    expect(endlessLevel(1).board.cells.some((c) => c.kind === 'tee')).toBe(false);
+    for (let level = 1; level <= 10; level++) {
+      expect(endlessLevel(level).board.cells.some((c) => c.kind === 'tee')).toBe(false);
+    }
+  });
+
+  it('старт мягкий: первые уровни — поле 3×3 и несколько ходов, первый ход их не решает', () => {
+    for (let level = 1; level <= 4; level++) {
+      const { board, solution } = endlessLevel(level);
+      expect([board.cols, board.rows], `уровень ${level}`).toEqual([3, 3]);
+      expect(solution.moves, `уровень ${level}`).toBeGreaterThanOrEqual(2);
+      expect(solution.moves, `уровень ${level}`).toBeLessThanOrEqual(4);
+    }
+    for (let level = 5; level <= 10; level++) {
+      expect(endlessLevel(level).solution.moves, `уровень ${level}`).toBeLessThanOrEqual(6);
+    }
+  });
+
+  it('поле растёт понемногу: за ступень не больше чем на столбец или ряд', () => {
+    for (let i = 1; i < TIERS.length; i++) {
+      const a = TIERS[i - 1]?.params;
+      const b = TIERS[i]?.params;
+      const cols = (b?.cols ?? 0) - (a?.cols ?? 0);
+      const rows = (b?.rows ?? 0) - (a?.rows ?? 0);
+      expect(cols, `ступень ${TIERS[i]?.from}`).toBeGreaterThanOrEqual(0);
+      expect(rows, `ступень ${TIERS[i]?.from}`).toBeGreaterThanOrEqual(0);
+      expect(cols + rows, `ступень ${TIERS[i]?.from}`).toBeLessThanOrEqual(1);
+    }
+    expect(TIERS.at(-1)?.params).toMatchObject({ cols: 7, rows: 7 });
   });
 
   it('сложность растёт: поле не уменьшается, медиана минимума растёт', { timeout: 60_000 }, () => {

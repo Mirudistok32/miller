@@ -2,10 +2,10 @@
 
 exports[`уровень дня > уровень 30.10.2026 не меняется от версии к версии (иначе нужен новый SEED_VERSION) 1`] = `
 {
-  "kinds": "sctscccscccecctcsceccsssssccsecsstsstscsse",
-  "mill": 2,
-  "moves": 18,
-  "rots": "132231301210231012020202212300222020222110",
-  "source": 1,
+  "kinds": "seceesceseseceeteccscsssc",
+  "mill": 4,
+  "moves": 8,
+  "rots": "1000020010301003021030021",
+  "source": 0,
 }
 `;

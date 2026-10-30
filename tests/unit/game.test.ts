@@ -183,6 +183,19 @@ describe('игра', () => {
     expect(repo.stored.stats.solved).toBe(1);
   });
 
+  it('итог дня с поля другого размера: показан записанный результат на решённом новом поле', () => {
+    const repo = memoryRepo({
+      ...emptySave(),
+      daily: { [TODAY]: { moves: 21, min: 17, time: 83.6, attempts: 1, rots: '0'.repeat(42) } },
+    });
+    const { game } = setup({ repo });
+    game.startDaily();
+    expect(game.screen).toBe('solved');
+    expect(game.ending?.revisit).toBe(true);
+    expect(game.ending?.result.moves).toBe(21);
+    expect(flow(game.session?.play.board ?? dailyLevel(TODAY).board).solved).toBe(true);
+  });
+
   it('завтра — новый уровень дня', () => {
     const repo = memoryRepo();
     const today = setup({ repo });

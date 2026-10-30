@@ -21,11 +21,12 @@ import {
   withRots,
 } from '@/domain/grid';
 import {
+  dailyKey,
   dailyLevel,
   demoLevel,
+  endlessKey,
   endlessLevel,
   endlessParams,
-  SEED_VERSION,
   sizeKey,
 } from '@/domain/levels';
 import {
@@ -377,7 +378,7 @@ export function createGame(deps: {
     const date = clock.today();
     const level = dailyLevel(date);
     const season = seasonOfMonth(monthOfKey(date));
-    const key = `daily:v${SEED_VERSION}:${date}`;
+    const key = dailyKey(date);
     const done = piloted ? undefined : store.get().daily[date];
     if (!done) {
       begin(makeSession('daily', key, level, { date, season }, restore('daily', key, level)));
@@ -431,7 +432,7 @@ export function createGame(deps: {
   const startEndless = () => {
     const n = store.get().endless.level;
     const level = endlessLevel(n);
-    const key = `endless:v${SEED_VERSION}:${n}`;
+    const key = endlessKey(n);
     begin(
       makeSession(
         'endless',
